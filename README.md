@@ -30,3 +30,29 @@ git push                   # 推送到 GitHub
 git pull                   # 拉取远程更新
 git log --oneline --graph  # 查看提交历史
 ```
+
+## 实操记录
+
+### 2026-10-10 首次打通全流程
+
+| 步骤 | 内容 | 结果 |
+|---|---|---|
+| 1 | 修复 Git 全局身份 | `gf92syt8kj-arch <336407470+gf92syt8kj-arch@users.noreply.github.com>` |
+| 2 | 生成 SSH 密钥 | `~/.ssh/id_ed25519`（ed25519） |
+| 3 | 公钥登记到 GitHub | `Hi gf92syt8kj-arch! You've successfully authenticated` |
+| 4 | 本地提交 | `b412f08` on `main` |
+| 5 | 推送到远程 | `* [new branch] main -> main` |
+
+### 本次排查的一个真实问题
+
+浏览器打不开 GitHub，但 SSH 推送正常。诊断结论：
+
+- `github.com` 被 DNS 解析到 `20.205.243.166`
+- 该 IP 的 **443 端口超时**，而 **22 端口正常** → 所以网页挂、推送好
+- 其他 GitHub 边缘 IP（`140.82.113.3` 等）的 443 全部正常
+
+修复思路：GitHub 边缘按 SNI 路由，把 `github.com` 指向任意一台可连通的边缘 IP
+即可，详见同目录的 `fix-github-hosts.sh`。
+
+**经验**：网页打不开不等于网络不通，要分开测 DNS、端口、以及不同 IP，
+才能定位到是"单个 IP 坏了"而不是"整体被墙"。
